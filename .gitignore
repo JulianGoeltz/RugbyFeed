@@ -1,0 +1,8 @@
+*.swp
+*.png
+*.jpg
+*.xcf
+utils/config_sensitive.json
+utils/.tmp_users.json
+utils/.tmp_matches.json
+__pycache__
