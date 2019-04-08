@@ -12,7 +12,7 @@ from . import Parser, Users
 # get config
 with open('./utils/config.json', 'r') as f:
     config = json.load(f)
-with open('./utils/config_sensitive.json', 'r') as f:
+with open('../config_sensitive.json', 'r') as f:
     config_sensitive = json.load(f)
 
 feedParser = Parser.PARSER()

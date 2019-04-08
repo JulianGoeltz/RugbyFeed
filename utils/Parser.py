@@ -9,7 +9,7 @@ def clearOfRandNandT(text):
     return text.replace('\r', ' ').replace('\n', ' ').replace('\t', ' ')
 
 
-with open('./utils/config_sensitive.json', 'r') as f:
+with open('../config_sensitive.json', 'r') as f:
     config_sensitive = json.load(f)
 
 
