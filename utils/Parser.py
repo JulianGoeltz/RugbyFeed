@@ -56,6 +56,7 @@ class PARSER:
                 if colour not in duplicates:
                     duplicates[colour] = [all_matches[colour]]
                 duplicates[colour].append((name, points, matchStatus))
+                continue
             all_matches[colour] = (name, points, matchStatus)
             # return  # exit()
         if len(duplicates) != 0:
