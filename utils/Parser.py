@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 from bs4 import BeautifulSoup
 import json
-import urllib.request as urllib2
+import urllib.request
+from socket import error as SocketError
+import errno
 from pprint import pprint, pformat as pf
 
 
@@ -9,26 +11,42 @@ def clearOfRandNandT(text):
     return text.replace('\r', ' ').replace('\n', ' ').replace('\t', ' ')
 
 
+with open('./utils/config.json', 'r') as f:
+    config = json.load(f)
+
 with open('../config_sensitive.json', 'r') as f:
     config_sensitive = json.load(f)
 
 
 class PARSER:
     def __init__(self):
-        self.update()
+        self.update(config['retry_connection_number'])
         # self.currentMatches = False
         # self.currentMessages = False
         pass
 
-    def update(self):
-        html_page = urllib2.urlopen(config_sensitive['ticker_url'])
-        html_page_read = str((html_page.read()).decode('utf-8'))
-        self.soup = BeautifulSoup(
-            html_page_read,
-            'html.parser')
-        self.currentMatches = False
-        self.currentMessages = False
-        # print(self.soup.pretify())
+    def update(self, reTriesLeft):
+        if reTriesLeft != 0:
+            print("Retried too often, raising error")
+            raise SocketError(errno.ECONNRESET)
+
+        try:
+            html_page = urllib.request.urlopen(config_sensitive['ticker_url'])
+        except SocketError as e:
+            if e.errno != errno.ECONNRESET:
+                raise  # Not error we are expecting
+            else:
+                print("Caught a ECONNRESET error (connection reset by peer, retrying")
+                self.update(reTriesLeft - 1)
+                pass  # Handle error here
+        else:
+            html_page_read = str((html_page.read()).decode('utf-8'))
+            self.soup = BeautifulSoup(
+                html_page_read,
+                'html.parser')
+            self.currentMatches = False
+            self.currentMessages = False
+            # print(self.soup.pretify())
 
     def returnNumberOfMessages(self):
         if self.currentMessages:

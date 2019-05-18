@@ -26,7 +26,7 @@ if __name__ == '__main__':
         print("Starting with the loop at {}.".format(
             time.strftime("%Y%m%d-%H%M%S", time.gmtime(timestamp))))
         # fetch current feed
-        feedParser.update()
+        feedParser.update(config['retry_connection_number'])
 
         # Updating the users to inform them of new matches
         print("    Updating the users.")
