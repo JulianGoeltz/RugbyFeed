@@ -67,6 +67,6 @@ if __name__ == '__main__':
                         markdown=True,
                         addListMatches=True)
         # sleep until timestamp+60s
-        sleeping = timestamp + 60. - time.time()
+        sleeping = timestamp + config['update_every_x_seconds'] - time.time()
         if sleeping > 0.:
             time.sleep(sleeping)

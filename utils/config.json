@@ -13,4 +13,5 @@
 "text_updates": "There are new matches available, have a look to subscribe to them (all previous subscriptions were reset).",
 "user_filename": "./utils/.tmp_users.json",
 "matches_filename": "./utils/.tmp_matches.json",
-"retry_connection_number": 3}
+"retry_connection_number": 3,
+"update_every_x_seconds": 30}
