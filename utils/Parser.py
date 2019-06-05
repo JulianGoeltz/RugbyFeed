@@ -26,7 +26,7 @@ class PARSER:
         pass
 
     def update(self, reTriesLeft):
-        if reTriesLeft != 0:
+        if reTriesLeft == 0:
             print("Retried too often, raising error")
             raise SocketError(errno.ECONNRESET)
 
