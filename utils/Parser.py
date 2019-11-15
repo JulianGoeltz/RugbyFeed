@@ -55,12 +55,15 @@ class PARSER:
         self.numberOfMessages = len(self.returnMessages())
         return self.numberOfMessages
 
-    def returnMatches(self):
+    def returnMatches(self, return_duplicate_status=False):
         if self.currentMatches:
-            return self.matches
+            if return_duplicate_status:
+                return self.matches, self.duplicates
+            else:
+                return self.matches
 
         all_matches = {}
-        duplicates = {}
+        duplicates = False
         for item_match in self.soup.find_all('table', attrs=('class', 'ticker')):
             colour = item_match['style'][18:-1]
             colour = colour if len(colour) <= 7 else colour[0:7]
@@ -71,20 +74,23 @@ class PARSER:
                 'span', attrs=('class', 'small')).get_text()
             matchStatus = matchStatus[1:-1].strip()
             if colour in all_matches:
-                if colour not in duplicates:
-                    duplicates[colour] = [all_matches[colour]]
-                duplicates[colour].append((name, points, matchStatus))
-                continue
-            all_matches[colour] = (name, points, matchStatus)
-            # return  # exit()
-        if len(duplicates) != 0:
-            print("Error because of duplicate matches (according to their colour):")
-            pprint(duplicates)
+                # add the matchnames etc to the existing ones, st users see them directly
+                duplicates = True
+                all_matches[colour] = (
+                    all_matches[colour][0] + "/" + name,
+                    all_matches[colour][1] + "/" + points,
+                    all_matches[colour][2] + "/" + matchStatus)
+            else:
+                all_matches[colour] = (name, points, matchStatus)
 
         # print("Available matches: {}".format(pf(all_matches)))
         self.matches = all_matches
+        self.duplicates = duplicates
         self.currentMatches = True
-        return self.matches
+        if return_duplicate_status:
+            return self.matches, self.duplicates
+        else:
+            return self.matches
 
     def returnHashedMatches(self):
         sortedMatchkeys = sorted(self.returnMatches().keys())
@@ -99,7 +105,8 @@ class PARSER:
         item_div = self.soup.find(id='comment-box')
         item_table = item_div.findChild()
         for item_tr in item_table.childGenerator():
-            if isinstance(item_tr, str): continue
+            if isinstance(item_tr, str):
+                continue
             # old = item_tr
 
             current = {}

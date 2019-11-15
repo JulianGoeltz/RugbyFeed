@@ -3,6 +3,7 @@ import copy
 import json
 import os
 import os.path as osp
+from pprint import pprint, pformat as pf
 import time
 
 
@@ -11,8 +12,8 @@ with open('./utils/config.json', 'r') as f:
     config = json.load(f)
 if not osp.isfile(config['user_filename']) or \
    os.stat(config['user_filename']).st_size == 0:
-        with open(config['user_filename'], 'w') as f:
-            json.dump([], f)
+    with open(config['user_filename'], 'w') as f:
+        json.dump([], f)
 
 
 def doesUserExist(chatId):
@@ -72,7 +73,8 @@ def toggleMute(chatId, muteness):
         users = json.load(f)
     with open(config['user_filename'], 'w') as f:
         for user in users:
-            if user['chatId'] != chatId: continue
+            if user['chatId'] != chatId:
+                continue
             user['receiveUpdates'] = muteness
         json.dump(users, f)
 
@@ -83,7 +85,8 @@ def switchSub(chatId, match):
     with open(config['user_filename'], 'w') as f:
         foundUser = False
         for user in users:
-            if user['chatId'] != chatId: continue
+            if user['chatId'] != chatId:
+                continue
 
             users.remove(user)
             found_tmp = False
@@ -114,13 +117,23 @@ def updateUsers(bot):
     matches_new = sorted([i[0] for i in feedParser.returnMatches().values()])
 
     if matches_new != matches_old:
-        with open(config['user_filename'], 'r') as f:
-            users = json.load(f)
-        # reset all the subscriptions
-        with open(config['user_filename'], 'w') as f:
-            for user in users:
-                user['subs'] = []
-            json.dump(users, f)
+        # need for reset?
+        # determine if all old matches are part of the new ones
+        reset_needed = False
+        for match in matches_old:
+            if match not in matches_new:
+                reset_needed = True
+                break
+
+        if reset_needed:
+            with open(config['user_filename'], 'r') as f:
+                users = json.load(f)
+            # reset all the subscriptions
+            with open(config['user_filename'], 'w') as f:
+                for user in users:
+                    user['subs'] = []
+                json.dump(users, f)
+
         # save the current matches
         with open(config['matches_filename'], 'w') as f:
             json.dump(matches_new, f)
@@ -129,5 +142,5 @@ def updateUsers(bot):
         for user in users:
             if user['receiveUpdates']:
                 bot.sendMessage(user['chatId'],
-                                config['text_updates'],
+                                config['text_updates'] if not reset_needed else config['text_updates_reset'],
                                 addListMatches=True)

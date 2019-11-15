@@ -81,7 +81,7 @@ def listMatches(bot, update):
                          text=config['text_notstarted'])
         return
     hashedMatches = feedParser.returnHashedMatches()
-    matches = feedParser.returnMatches()
+    matches, duplicates = feedParser.returnMatches(return_duplicate_status=True)
     subbedMatches = Users.getSubbedMatches(update.message.chat_id)
     tmpString = ""
     custom_keyboard = []
@@ -94,6 +94,8 @@ def listMatches(bot, update):
             score,
             ", *subscribed*" if match in subbedMatches else "")
         custom_keyboard.append(["/switchSub " + str(key) + " " + name])
+    if duplicates:
+        tmpString += "\nDue to the website design, some matches can't be kept appart"
     custom_keyboard.append(["None"])
     reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard,
                                                 one_time_keyboard=True)
