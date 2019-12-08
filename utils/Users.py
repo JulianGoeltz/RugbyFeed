@@ -125,9 +125,9 @@ def updateUsers(bot):
                 reset_needed = True
                 break
 
+        with open(config['user_filename'], 'r') as f:
+            users = json.load(f)
         if reset_needed:
-            with open(config['user_filename'], 'r') as f:
-                users = json.load(f)
             # reset all the subscriptions
             with open(config['user_filename'], 'w') as f:
                 for user in users:
