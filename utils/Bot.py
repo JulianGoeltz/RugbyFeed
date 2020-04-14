@@ -72,6 +72,23 @@ def help(update: Updater, context: CallbackContext):
         chatId=update.effective_user['id'], text=text,)
 
 
+def get_link(update: Updater, context: CallbackContext):
+    """List all available matches, and the ones the user is subscribed to.
+
+    Offer the registration"""
+    if not Users.doesUserExist(update.effective_user['id']):
+        context.bot.send_message(chat_id=update.effective_user['id'],
+                                 text=config['text_notstarted'])
+        return
+
+    text = config_sensitive['ticker_url']
+    BOT.sendMessageWithGivenBot(
+        None,
+        context.bot,
+        chatId=update.effective_user['id'], text=text,
+        addListMatches=True)
+
+
 def listMatches(update: Updater, context: CallbackContext):
     """List all available matches, and the ones the user is subscribed to.
 
@@ -83,23 +100,28 @@ def listMatches(update: Updater, context: CallbackContext):
     hashedMatches = feedParser.returnHashedMatches()
     matches, duplicates = feedParser.returnMatches(return_duplicate_status=True)
     subbedMatches = Users.getSubbedMatches(update.effective_user['id'])
-    tmpString = ""
-    custom_keyboard = []
-    for key, match in enumerate(hashedMatches):
-        name, score, status = matches[match]
-        tmpString += "{}: {}, {}, {}{}\n".format(
-            str(key),
-            name,
-            status,
-            score,
-            ", *subscribed*" if match in subbedMatches else "")
-        custom_keyboard.append(["/switchSub " + str(key) + " " + name])
-    if duplicates:
-        tmpString += "\nDue to the website design, some matches can't be kept appart"
-    custom_keyboard.append(["None"])
+    if len(hashedMatches) > 0:
+        tmpString = ""
+        custom_keyboard = []
+        for key, match in enumerate(hashedMatches):
+            name, score, status = matches[match]
+            tmpString += "{}: {}, {}, {}{}\n".format(
+                str(key),
+                name,
+                status,
+                score,
+                ", *subscribed*" if match in subbedMatches else "")
+            custom_keyboard.append(["/switchSub " + str(key) + " " + name])
+        if duplicates:
+            tmpString += "\nDue to the website design, some matches can't be kept appart"
+        custom_keyboard.append(["None"])
+        text = config['text_list'].format(tmpString)
+    else:
+        text = config['text_list_empty']
+        custom_keyboard = [['/getLink']]
+
     reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard,
                                                 one_time_keyboard=True)
-    text = config['text_list'].format(tmpString)
     BOT.sendMessageWithGivenBot(
         None,
         context.bot,

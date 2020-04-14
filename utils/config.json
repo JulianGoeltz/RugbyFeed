@@ -5,6 +5,7 @@
 "text_notstarted": "You have to start first. To do this, use /start",
 "text_startedAlready": "You are already started, subscribe to a game to get the updates.",
 "text_list": "The available matches for feeding are \n{}Simply write '/switchSub [number]' where [number] is the number at the beginning of the line.",
+"text_list_empty": "Unfortunately there are no matches in the list, maybe check the link of the liveticker.",
 "text_switch_sub": "You subscribed to the match {}. At the next update you'll get messages from this match, too.",
 "text_switch_unsub": "You unsubscribed from the match {}.",
 "text_switch_error": "You entered a wrong number {}, the command is '/switchSub number'. Try again.",
