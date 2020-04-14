@@ -175,19 +175,17 @@ class BOT:
         self.updater = Updater(token=config_sensitive['token'], use_context=True)
         self.dispatcher = self.updater.dispatcher
 
-        handler_start = CommandHandler('start', start, pass_args=True)
-        handler_stop = CommandHandler('stop', stop)
-        handler_help = CommandHandler('help', help)
-        handler_listMatches = CommandHandler('listMatches', listMatches)
-        handler_switchSubscription = CommandHandler('switchSub',
-                                                    switchSubscription,
-                                                    pass_args=True)
-
-        self.dispatcher.add_handler(handler_start)
-        self.dispatcher.add_handler(handler_stop)
-        self.dispatcher.add_handler(handler_help)
-        self.dispatcher.add_handler(handler_listMatches)
-        self.dispatcher.add_handler(handler_switchSubscription)
+        list_of_commands = [
+            ['start', start],
+            ['stop', stop],
+            ['help', help],
+            ['listMatches', listMatches],
+            ['switchSub', switchSubscription],
+            ['getLink', get_link],
+        ]
+        for name, fn in list_of_commands:
+            self.dispatcher.add_handler(
+                CommandHandler(name, fn))
 
         self.updater.start_polling()
 
