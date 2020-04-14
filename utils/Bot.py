@@ -3,7 +3,7 @@ import json
 import logging
 import socket
 import telegram
-from telegram.ext import Updater, CommandHandler
+from telegram.ext import CallbackContext, CommandHandler, Updater
 import time
 
 from . import Parser, Users
@@ -18,71 +18,71 @@ with open('../config_sensitive.json', 'r') as f:
 feedParser = Parser.PARSER()
 
 
-def start(bot, update, args):
+def start(update: Updater, context: CallbackContext):
     """List all available matches, and the ones the user is subscribed to.
 
     Offer the registration"""
     # user already added
-    if Users.doesUserExist(update.message.chat_id):
-        Users.toggleMute(update.message.chat_id, False)
+    if Users.doesUserExist(update.effective_user['id']):
+        Users.toggleMute(update.effective_user['id'], False)
         BOT.sendMessageWithGivenBot(
             None,
-            bot,
-            chatId=update.message.chat_id, text=config['text_unmuted'],
+            context.bot,
+            chatId=update.effective_user['id'], text=config['text_unmuted'],
             addListMatches=True)
-        listMatches(bot, update)
+        listMatches(update, context)
         return
     # user with wrong password
-    if len(args) == 0 or args[0] != config_sensitive['passwordForBot']:
+    if len(context.args) == 0 or context.args[0] != config_sensitive['passwordForBot']:
         BOT.sendMessageWithGivenBot(
             None,
-            bot,
-            chatId=update.message.chat_id, text=config['text_wrongPassword'])
+            context.bot,
+            chatId=update.effective_user['id'], text=config['text_wrongPassword'])
         return
     text = config['text_start']
     BOT.sendMessageWithGivenBot(
         None,
-        bot,
-        chatId=update.message.chat_id, text=text,
+        context.bot,
+        chatId=update.effective_user['id'], text=text,
         addListMatches=True)
-    Users.addUser(update.message.chat_id)
-    # listMatches(bot, update)
+    Users.addUser(update.effective_user['id'])
+    # listMatches(update, context)
 
 
-def stop(bot, update):
+def stop(update: Updater, context: CallbackContext):
     """To not annoy users make an option to remove them from the users."""
 
-    if not Users.doesUserExist(update.message.chat_id):
-        bot.send_message(chat_id=update.message.chat_id,
-                         text=config['text_notstarted'])
+    if not Users.doesUserExist(update.effective_user['id']):
+        context.bot.send_message(chat_id=update.effective_user['id'],
+                                 text=config['text_notstarted'])
         return
     BOT.sendMessageWithGivenBot(
         None,
-        bot,
-        chatId=update.message.chat_id, text=config['text_muted'])
-    Users.toggleMute(update.message.chat_id, True)
-    listMatches(bot, update)
+        context.bot,
+        chatId=update.effective_user['id'], text=config['text_muted'])
+    Users.toggleMute(update.effective_user['id'], True)
+    listMatches(update, context)
 
 
-def help(bot, update):
+def help(update: Updater, context: CallbackContext):
     text = config['text_help']
     BOT.sendMessageWithGivenBot(
         None,
-        bot,
-        chatId=update.message.chat_id, text=text,)
+        context.bot,
+        chatId=update.effective_user['id'], text=text,)
 
 
-def listMatches(bot, update):
+def listMatches(update: Updater, context: CallbackContext):
     """List all available matches, and the ones the user is subscribed to.
 
     Offer the registration"""
-    if not Users.doesUserExist(update.message.chat_id):
-        bot.send_message(chat_id=update.message.chat_id,
-                         text=config['text_notstarted'])
+    if not Users.doesUserExist(update.effective_user['id']):
+        context.bot.send_message(chat_id=update.effective_user['id'],
+                                 text=config['text_notstarted'])
         return
     hashedMatches = feedParser.returnHashedMatches()
     matches, duplicates = feedParser.returnMatches(return_duplicate_status=True)
-    subbedMatches = Users.getSubbedMatches(update.message.chat_id)
+    subbedMatches = Users.getSubbedMatches(update.effective_user['id'])
     tmpString = ""
     custom_keyboard = []
     for key, match in enumerate(hashedMatches):
@@ -102,42 +102,42 @@ def listMatches(bot, update):
     text = config['text_list'].format(tmpString)
     BOT.sendMessageWithGivenBot(
         None,
-        bot,
-        chatId=update.message.chat_id, text=text,
+        context.bot,
+        chatId=update.effective_user['id'], text=text,
         markdown=True,
         reply_markup=reply_markup)
 
 
-def switchSubscription(bot, update, args):
+def switchSubscription(update: Updater, context: CallbackContext):
     """(Un)subscribe the user for a match."""
-    if not Users.doesUserExist(update.message.chat_id):
-        bot.send_message(chat_id=update.message.chat_id,
-                         text=config['text_notstarted'])
+    if not Users.doesUserExist(update.effective_user['id']):
+        context.bot.send_message(chat_id=update.effective_user['id'],
+                                 text=config['text_notstarted'])
         return
     hashedMatches = feedParser.returnHashedMatches()
     wrongInput = False
     try:
-        givenInt = int(args[0])
+        givenInt = int(context.args[0])
     except (ValueError, IndexError):
         wrongInput = True
         givenInt = ""
     if wrongInput or givenInt > len(hashedMatches):
-        bot.send_message(chat_id=update.message.chat_id,
-                         text=config['text_switch_error'].format(givenInt))
-        listMatches(bot, update)
+        context.bot.send_message(chat_id=update.effective_user['id'],
+                                 text=config['text_switch_error'].format(givenInt))
+        listMatches(update, context)
         return
 
     matches = feedParser.returnMatches()
     match = hashedMatches[givenInt]
-    if Users.switchSub(update.message.chat_id,
+    if Users.switchSub(update.effective_user['id'],
                        match):
         text = config['text_switch_unsub'].format(matches[match][0])
     else:
         text = config['text_switch_sub'].format(matches[match][0])
     BOT.sendMessageWithGivenBot(
         None,
-        bot,
-        chatId=update.message.chat_id, text=text,
+        context.bot,
+        chatId=update.effective_user['id'], text=text,
         addListMatches=True)
 
 
@@ -150,7 +150,7 @@ class BOT:
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                             level=logging.INFO)
         # print(self.bot.get_me())
-        self.updater = Updater(token=config_sensitive['token'])
+        self.updater = Updater(token=config_sensitive['token'], use_context=True)
         self.dispatcher = self.updater.dispatcher
 
         handler_start = CommandHandler('start', start, pass_args=True)
