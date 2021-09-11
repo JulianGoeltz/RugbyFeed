@@ -33,12 +33,13 @@ class PARSER:
         try:
             html_page = urllib.request.urlopen(config_sensitive['ticker_url'])
         except SocketError as e:
-            if e.errno != errno.ECONNRESET:
-                raise  # Not error we are expecting
-            else:
+            if e.errno == errno.ECONNRESET:  # check if it is error we are expecting
                 print("Caught a ECONNRESET error (connection reset by peer, retrying")
+                # following line recursively calls the same function with decreased reTriesLeft
                 self.update(reTriesLeft - 1)
-                pass  # Handle error here
+                pass
+            else:
+                raise
         else:
             html_page_read = str((html_page.read()).decode('utf-8'))
             self.soup = BeautifulSoup(
