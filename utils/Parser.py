@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 from bs4 import BeautifulSoup
+import http
 import json
 import urllib.request
 from socket import error as SocketError
 import errno
 from pprint import pprint, pformat as pf
+import time
 
 
 def clearOfRandNandT(text):
@@ -20,9 +22,10 @@ with open('../config_sensitive.json', 'r') as f:
 
 class PARSER:
     def __init__(self):
+        self.last_update = 0
+        self.currentMatches = False
+        self.currentMessages = False
         self.update(config['retry_connection_number'])
-        # self.currentMatches = False
-        # self.currentMessages = False
         pass
 
     def update(self, reTriesLeft):
@@ -41,13 +44,20 @@ class PARSER:
             else:
                 raise
         else:
-            html_page_read = str((html_page.read()).decode('utf-8'))
-            self.soup = BeautifulSoup(
-                html_page_read,
-                'html.parser')
-            self.currentMatches = False
-            self.currentMessages = False
-            # print(self.soup.pretify())
+            try:
+                html_page_read = str((html_page.read()).decode('utf-8'))
+            except http.client.IncompleteRead as e:
+                print(f"Caught a http.client.IncompleteRead error {e}, retrying now")
+                self.update(reTriesLeft - 1)
+                pass
+            else:
+                self.soup = BeautifulSoup(
+                    html_page_read,
+                    'html.parser')
+                self.currentMatches = False
+                self.currentMessages = False
+                self.last_update = time.time()
+                # print(self.soup.pretify())
 
     def returnNumberOfMessages(self):
         if self.currentMessages:

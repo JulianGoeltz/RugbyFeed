@@ -121,6 +121,9 @@ def listMatches(update: Updater, context: CallbackContext):
         text = config['text_list_empty']
         custom_keyboard = [['/getLink']]
 
+    if feedParser.last_update <= time.time() - config['update_every_x_seconds'] * config['update_timeout_in_updates']:
+        text += config['text_updates_timeout']
+
     reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard,
                                                 one_time_keyboard=True)
     BOT.sendMessageWithGivenBot(
