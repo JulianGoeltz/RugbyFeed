@@ -101,8 +101,11 @@ def listMatches(update: Updater, context: CallbackContext):
     matches, duplicates = feedParser.returnMatches(return_duplicate_status=True)
     subbedMatches = Users.getSubbedMatches(update.effective_user['id'])
     if len(hashedMatches) > 0:
-        tmpString = ""
         custom_keyboard = []
+        if duplicates:
+            tmpString = config['text_list_duplicates']
+        else:
+            tmpString = "\n"
         for key, match in enumerate(hashedMatches):
             name, score, status = matches[match]
             tmpString += "{}: {}, {}, {}{}\n".format(
@@ -112,8 +115,6 @@ def listMatches(update: Updater, context: CallbackContext):
                 score,
                 ", *subscribed*" if match in subbedMatches else "")
             custom_keyboard.append(["/switchSub " + str(key) + " " + name])
-        if duplicates:
-            tmpString += "\nDue to the website design, some matches can't be kept appart"
         custom_keyboard.append(["None"])
         text = config['text_list'].format(tmpString)
     else:
